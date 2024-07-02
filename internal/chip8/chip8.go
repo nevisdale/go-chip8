@@ -310,6 +310,8 @@ func (c *Chip8) Emulate() {
 				c.regsV[0xf] = 1
 			}
 			c.regsV[x] = c.regsV[y] - c.regsV[x]
+
+			opcodeString = fmt.Sprintf("V%X = V%X - V%X with flags", x, y, x)
 		case 0x0e:
 		}
 

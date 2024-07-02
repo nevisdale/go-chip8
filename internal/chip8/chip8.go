@@ -147,21 +147,21 @@ func (c *Chip8) Emulate() {
 
 	c.pc += 2
 
+	// Standard Chip-8 Instructions
+	//
+	// http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.0
 	switch typ {
 	case 0x0:
 		switch nn {
 
-		// 00E0 - CLS
-		// Clear the display.
+		// 00E0
+		// Clears the screen
 		case 0xe0:
 			c.clearScreen()
 			opcodeString = "clear screen"
 
-		// 00EE - RET
-		// Return from a subroutine.
-		//
-		// The interpreter sets the program counter to the address at the top of the stack,
-		// then subtracts 1 from the stack pointer.
+		// 00EE
+		// Returns from a subroutine
 		case 0xee:
 			if c.sp == 0 {
 				log.Println("incorrect stack")
@@ -172,17 +172,20 @@ func (c *Chip8) Emulate() {
 			c.pc = c.stack[c.sp]
 			opcodeString = fmt.Sprintf("return (jump to %04X)", c.pc)
 
-		// 0NNN	Calls machine code routine (RCA 1802 for COSMAC VIP) at address NNN. Not necessary for most ROMs
+		// This instruction is only used on the old computers on which Chip-8 was originally implemented.
+		// It is ignored by modern interpreters.
 		default:
 			log.Println("unsupport 0NNN")
 		}
 
-	// 1NNN Jumps to address NNN
+	// 1NNN
+	// Jumps to address NNN
 	case 0x01:
 		c.pc = nnn
 		opcodeString = fmt.Sprintf("jump to %04X", c.pc)
 
-	// 2NNN Calls subroutine at NNN
+	// 2NNN
+	// Calls subroutine at NNN
 	case 0x02:
 		if c.sp == StackMaxSize {
 			log.Println("stack overflow")
@@ -193,7 +196,8 @@ func (c *Chip8) Emulate() {
 		c.pc = nnn
 		opcodeString = fmt.Sprintf("call %04X (jump to %04X)", c.pc, c.pc)
 
-	// 3XNN: Skip the following instruction if the value of register VX equals NN
+	// 3XNN
+	// Skips the next instruction if VX equals NN
 	case 0x03:
 		if c.regsV[x] == nn {
 			c.pc += 2
@@ -202,7 +206,8 @@ func (c *Chip8) Emulate() {
 			opcodeString = fmt.Sprintf("continue to %04X because v%X != %02X", c.pc, x, nn)
 		}
 
-	// 4XNN: Skip the following instruction if the value of register VX is not equal to NN
+	// 4XNN
+	// Skips the next instruction if VX does not equal NN
 	case 0x04:
 		if c.regsV[x] != nn {
 			c.pc += 2
@@ -211,7 +216,8 @@ func (c *Chip8) Emulate() {
 			opcodeString = fmt.Sprintf("continue to %04X because v%X == %02X", c.pc, x, nn)
 		}
 
-	// 5XY0: Skip the following instruction if the value of register VX is equal to the value of register VY
+	// 5XY0
+	// Skips the next instruction if VX equals VY
 	case 0x05:
 		switch n {
 		case 0x0:
@@ -226,43 +232,47 @@ func (c *Chip8) Emulate() {
 			log.Println("n must be 0 for 5XY0 opcode")
 		}
 
-	// 6XNN: Set VX to NN
+	// 6XNN
+	// Sets VX to NN
 	case 0x06:
 		c.regsV[x] = nn
 		opcodeString = fmt.Sprintf("v%X = %02X", x, nn)
 
-	// 7XNN: Add NN to VX
-	//
-	// (carry flag is not changed)
+	// 7XNN
+	// Adds NN to VX (carry flag is not changed)
 	case 0x07:
 		c.regsV[x] += nn
 		opcodeString = fmt.Sprintf("v%X += %02X without flags", x, nn)
 
 	case 0x08:
 		switch n {
-		// 8XY0: Set VX to the value in VY
+
+		// 8XY0
+		// Sets VX to the value of VY
 		case 0x00:
 			c.regsV[x] = c.regsV[y]
 			opcodeString = fmt.Sprintf("v%X = v%X", x, y)
 
-		// 8XY1: Set VX to VX OR VY
+		// 8XY1
+		// Sets VX to VX or VY
 		case 0x01:
 			c.regsV[x] |= c.regsV[y]
 			opcodeString = fmt.Sprintf("v%X |= v%X", x, y)
 
-		// 8XY2: Set VX to VX AND VY
+		// 8XY2
+		// Sets VX to VX and VY
 		case 0x02:
 			c.regsV[x] &= c.regsV[y]
 			opcodeString = fmt.Sprintf("v%X &= v%X", x, y)
 
-		// 8XY3: Set VX to VX XOR VY
+		// 8XY3
+		// Sets VX to VX xor VY
 		case 0x03:
 			c.regsV[x] ^= c.regsV[y]
 			opcodeString = fmt.Sprintf("v%X ^= v%X", x, y)
 
-		// 8XY4: Add the value of register VY to register VX.
-		// Set VF to 01 if a carry occurs.
-		// Set VF to 00 if a carry does not occur
+		// 8XY4
+		// Adds VY to VX. VF is set to 1 when there's an overflow, and to 0 when there is not
 		case 0x04:
 			c.regsV[0xf] = 0
 			if math.MaxUint8-c.regsV[x] < c.regsV[y] {
@@ -271,33 +281,17 @@ func (c *Chip8) Emulate() {
 			c.regsV[x] += c.regsV[y]
 			opcodeString = fmt.Sprintf("v%X += v%X with flags", x, y)
 
-		// TODO: FIX IT
-		// 8XY5: Subtract the value of register VY from register VX.
-		// Set VF to 00 if a borrow occurs.
-		// Set VF to 01 if a borrow does not occur
+		// 8XY5
+		// VY is subtracted from VX. VF is set to 0 when there's an underflow, and 1 when there is not
 		case 0x05:
 			c.regsV[0xf] = 0
-			if c.regsV[y] >= c.regsV[x] {
+			if c.regsV[x] >= c.regsV[y] {
 				c.regsV[0xf] = 0x1
 			}
-			c.regsV[x] = c.regsV[y] - c.regsV[x]
+			c.regsV[x] = c.regsV[x] - c.regsV[y]
 
-		// 8XY6: Store the value of register VY shifted right one bit in register VX.
-		// Set register VF to the least significant bit prior to the shift
 		case 0x06:
-			c.regsV[0xf] = 0
-			c.regsV[x] = c.regsV[x] >> 1
-			if c.regsV[x]&0x1 > 0 {
-				c.regsV[0xf] = 1
-			}
-
-		// 8XY7: Set register VX to the value of VY minus VX.
-		// Set VF to 00 if a borrow occurs.
-		// Set VF to 01 if a borrow does not occur
 		case 0x07:
-
-		// 8XYE: Store the value of register VY shifted left one bit in register VX.
-		// Set register VF to the most significant bit prior to the shift
 		case 0x0e:
 		}
 

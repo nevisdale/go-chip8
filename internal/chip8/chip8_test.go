@@ -346,9 +346,9 @@ func TestChip8_Emulate(t *testing.T) {
 			Data: []byte{
 				0x60, 0x11, // v[0] = 0x11
 				0x61, 0x14, // v[1] = 0x14
-				0x80, 0x15, // v[0] = v[1] - v[0] (v[f] = 1)
+				0x80, 0x15, // v[0] = v[0] - v[1] (v[f] = 0)
 				0x60, 0x11, // v[0] = 0x11
-				0x81, 0x05, // v[1] = v[0] - v[1] (v[f] = 0)
+				0x81, 0x05, // v[1] = v[1] - v[0] (v[f] = 1)
 			},
 		}
 
@@ -359,18 +359,18 @@ func TestChip8_Emulate(t *testing.T) {
 		chip8.Emulate()
 
 		chip8.Emulate()
-		subV0 := expectedV1 - expectedV0
+		subV0 := expectedV0 - expectedV1
 		require.Equal(t, subV0, chip8.regsV[0])
 		require.Equal(t, expectedV1, chip8.regsV[1])
-		require.Equal(t, uint8(1), chip8.regsV[0xf])
+		require.Equal(t, uint8(0), chip8.regsV[0xf])
 
 		chip8.Emulate()
 
 		chip8.Emulate()
-		subV1 := expectedV0 - expectedV1
+		subV1 := expectedV1 - expectedV0
 		require.Equal(t, subV1, chip8.regsV[1])
 		require.Equal(t, expectedV0, chip8.regsV[0])
-		require.Equal(t, uint8(0), chip8.regsV[0xf])
+		require.Equal(t, uint8(1), chip8.regsV[0xf])
 
 	})
 }

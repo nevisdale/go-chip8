@@ -301,7 +301,15 @@ func (c *Chip8) Emulate() {
 
 			opcodeString = fmt.Sprintf("V%X >>= 1", x)
 
+		// 8XY7
+		// Sets VX to VY minus VX. VF is set to 0 when there's an underflow,
+		// and 1 when there is not.
 		case 0x07:
+			c.regsV[0xf] = 0
+			if c.regsV[y] >= c.regsV[x] {
+				c.regsV[0xf] = 1
+			}
+			c.regsV[x] = c.regsV[y] - c.regsV[x]
 		case 0x0e:
 		}
 

@@ -323,6 +323,8 @@ func (c *Chip8) Emulate() {
 				c.regsV[0xf] = 1
 			}
 			c.regsV[x] <<= 1
+
+			opcodeString = fmt.Sprintf("V%X <<= 1", x)
 		}
 
 	// ANNN: Store memory address NNN in register I

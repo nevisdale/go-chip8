@@ -312,7 +312,17 @@ func (c *Chip8) Emulate() {
 			c.regsV[x] = c.regsV[y] - c.regsV[x]
 
 			opcodeString = fmt.Sprintf("V%X = V%X - V%X with flags", x, y, x)
+
+		// 8XYE
+		// Shifts VX to the left by 1,
+		// then sets VF to 1 if the most significant bit of VX prior to that shift was set,
+		// or to 0 if it was unset
 		case 0x0e:
+			c.regsV[0xf] = 0
+			if c.regsV[x]&0x80 > 0 {
+				c.regsV[0xf] = 1
+			}
+			c.regsV[x] <<= 1
 		}
 
 	// ANNN: Store memory address NNN in register I

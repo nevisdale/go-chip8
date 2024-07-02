@@ -389,7 +389,7 @@ func TestChip8_Emulate(t *testing.T) {
 		chip8.Emulate()
 		chip8.Emulate()
 
-		require.Equal(t, uint8(1) /* 0x11 & 0x1 */, chip8.regsV[0xf])
+		require.Equal(t, expectedV0&0x01, chip8.regsV[0xf])
 		require.Equal(t, expectedV0>>1, chip8.regsV[0])
 	})
 }

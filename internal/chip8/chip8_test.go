@@ -545,4 +545,44 @@ func TestChip8_Emulate(t *testing.T) {
 		chip8.Emulate()
 		require.GreaterOrEqual(t, expectedNN, chip8.regsV[0])
 	})
+
+	t.Run("EX9E", func(t *testing.T) {
+		rom := Rom{
+			Data: []byte{
+				0xe0, 0x93, // if keypad[v[0]] == pressed then skip the next instruction
+				0x00, 0xe0, // clear screen
+			},
+		}
+
+		chip8 := NewChip8()
+		chip8.LoadRom(rom)
+
+		chip8.KeyPad[0] = true
+		chip8.Screen[0] = true
+
+		chip8.Emulate()
+		chip8.Emulate()
+
+		require.True(t, chip8.Screen[0])
+	})
+
+	t.Run("EXA1", func(t *testing.T) {
+		rom := Rom{
+			Data: []byte{
+				0xe0, 0xa1, // if keypad[v[0]] != pressed then skip the next instruction
+				0x00, 0xe0, // clear screen
+			},
+		}
+
+		chip8 := NewChip8()
+		chip8.LoadRom(rom)
+
+		chip8.KeyPad[0] = false
+		chip8.Screen[0] = true
+
+		chip8.Emulate()
+		chip8.Emulate()
+
+		require.True(t, chip8.Screen[0])
+	})
 }

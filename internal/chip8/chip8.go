@@ -24,6 +24,9 @@ const (
 	ScreenHeight = 32
 	ScreenSize   = ScreenWidth * ScreenHeight
 
+	// // http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#2.3
+	KeyPadSize = 0x10
+
 	// Ticks per second
 	// see more http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#2.5
 	DefaultTPS = 60
@@ -67,8 +70,7 @@ type Chip8 struct {
 
 	Screen [ScreenSize]bool
 
-	// http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#2.3
-	KeyPad [0x10]bool
+	KeyPad [KeyPadSize]bool
 
 	// 16 general purpose 8-bit registers
 	regsV [0x10]uint8
@@ -400,6 +402,28 @@ func (c *Chip8) Emulate() {
 
 		opcodeString = fmt.Sprintf("draw(%X, %X, %X)", x, y, n)
 
+	case 0x0e:
+		switch nn {
+
+		// EX9E
+		// Skips the next instruction if the key stored in VX is pressed
+		case 0x93:
+			if c.regsV[x] < 0x10 && c.KeyPad[c.regsV[x]] {
+				c.pc += 2
+			}
+
+		// EXA1
+		// Skips the next instruction if the key stored in VX is not pressed
+		case 0xa1:
+			if c.regsV[x] < 0x10 && !c.KeyPad[c.regsV[x]] {
+				c.pc += 2
+			}
+
+		default:
+			opcodeString = fmt.Sprintf("unknown opcode %04X", opcode)
+			log.Println(opcodeString)
+		}
+
 	default:
 		opcodeString = fmt.Sprintf("unimplemented opcode: %04x", opcode)
 		log.Println(opcodeString)
@@ -468,4 +492,10 @@ var emptyScreen = make([]bool, ScreenSize)
 
 func (c *Chip8) clearScreen() {
 	copy(c.Screen[:], emptyScreen)
+}
+
+var emptyKeyPad = make([]bool, KeyPadSize)
+
+func (c *Chip8) clearKeyPad() {
+	copy(c.KeyPad[:], emptyKeyPad)
 }

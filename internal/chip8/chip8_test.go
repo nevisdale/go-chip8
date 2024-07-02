@@ -506,4 +506,27 @@ func TestChip8_Emulate(t *testing.T) {
 		chip8.Emulate()
 		require.Equal(t, expectedVI, chip8.regI)
 	})
+
+	t.Run("BNNN", func(t *testing.T) {
+		rom := Rom{
+			Data: []byte{
+				0x60, 0x06, // 0x200: v[0] = 0x06
+				0xb2, 0x00, // 0x202: jump to v[0] + 0x200 (0x206)
+				0x00, 0xe0, // 0x204: clear screen
+				0x00, 0x00, // do nothing
+
+			},
+		}
+
+		chip8 := NewChip8()
+		chip8.LoadRom(rom)
+
+		chip8.Screen[0] = true
+
+		chip8.Emulate()
+		chip8.Emulate()
+		chip8.Emulate()
+
+		require.True(t, chip8.Screen[0])
+	})
 }

@@ -351,9 +351,8 @@ func (c *Chip8) Emulate() {
 
 		opcodeString = fmt.Sprintf("vI = %02X", nnn)
 
-	// BNNN: Jump to address NNN + V0
-	//
-	// TODO: need to test
+	// BNNN
+	// Jumps to the address NNN plus V0
 	case 0x0b:
 		c.pc = nnn + uint16(c.regsV[0])
 

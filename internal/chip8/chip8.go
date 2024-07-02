@@ -361,11 +361,12 @@ func (c *Chip8) Emulate() {
 	case 0xc:
 		c.regsV[x] = uint8(v2.IntN(0x100)) & nn
 
-	// DXYN: Draw a sprite at position VX, VY with N bytes of sprite data
-	// starting at the address stored in I.
-	// Set VF to 01 if any set pixels are changed to unset, and 00 otherwise
-	//
-	// TODO: need to test
+	// DXYN
+	// Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
+	// Each row of 8 pixels is read as bit-coded starting from memory location I;
+	// I value does not change after the execution of this instruction.
+	// As described above, VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn,
+	// and to 0 if that does not happen.
 	case 0x0d:
 		posX := int(c.regsV[x] & (ScreenWidth - 1))
 		posY := int(c.regsV[y] & (ScreenHeight - 1))
@@ -397,8 +398,12 @@ func (c *Chip8) Emulate() {
 			}
 		}
 
+		opcodeString = fmt.Sprintf("draw(%X, %X, %X)", x, y, n)
+
 	default:
-		// log.Printf("unimplemented opcode: %04x\n", uint16(opcode))
+		opcodeString = fmt.Sprintf("unimplemented opcode: %04x", opcode)
+		log.Println(opcodeString)
+
 	}
 
 	fmt.Printf("%04X: %04X %s\n", c.pc, opcode, opcodeString)

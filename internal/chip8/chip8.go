@@ -344,11 +344,11 @@ func (c *Chip8) Emulate() {
 			log.Println("n must be 0 for 9XY0 opcode")
 		}
 
-	// ANNN: Store memory address NNN in register I
-	//
-	// TODO: need to test
+	// ANNN
+	// Sets I to the address NNN
 	case 0x0a:
 		c.regI = nnn
+
 		opcodeString = fmt.Sprintf("vI = %02X", nnn)
 
 	// BNNN: Jump to address NNN + V0

@@ -490,4 +490,20 @@ func TestChip8_Emulate(t *testing.T) {
 		chip8.Emulate()
 		require.False(t, chip8.Screen[0])
 	})
+
+	t.Run("ANNN", func(t *testing.T) {
+		expectedVI := uint16(0x189)
+
+		rom := Rom{
+			Data: []byte{
+				0xa1, 0x89, // regI = 0x189
+			},
+		}
+
+		chip8 := NewChip8()
+		chip8.LoadRom(rom)
+
+		chip8.Emulate()
+		require.Equal(t, expectedVI, chip8.regI)
+	})
 }

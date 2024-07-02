@@ -14,9 +14,12 @@ const (
 	EntryPoint   = 0x200  // 512
 
 	// from 0x000 to 0x1FF is Reserved for interpreter
+	//
 	// see more http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#2.1
 	RomMaxSizeBytes = RamSizeBytes - EntryPoint
 
+	// The original implementation of the Chip-8 language used
+	// a 64x32-pixel monochrome display
 	ScreenWidth  = 64
 	ScreenHeight = 32
 	ScreenSize   = ScreenWidth * ScreenHeight
@@ -48,10 +51,6 @@ var font []byte = []byte{
 	0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 }
 
-type Config struct {
-	Rom Rom
-}
-
 type State int
 
 const (
@@ -61,8 +60,8 @@ const (
 )
 
 type Chip8 struct {
-	ram     [RamSizeBytes]byte
-	romName string
+	ram [RamSizeBytes]byte
+	rom Rom
 
 	State State
 
@@ -79,7 +78,7 @@ type Chip8 struct {
 	// so only the lowest (rightmost) 12 bits are usually used.
 	regI uint16
 
-	// used to store the currently executing address
+	// Used to store the currently executing address.
 	pc uint16
 
 	// The stack is an array of 16 16-bit values,
@@ -87,11 +86,11 @@ type Chip8 struct {
 	// Chip-8 allows for up to 16 levels of nested subroutines
 	stack [StackMaxSize]uint16
 
-	// used to point to the topmost level of the stack
-	//
-	// TODO: maybe int8 to adderss on the current stack level and starts from -1?
+	// used to point to the next level of the stack.
+	// starts from 0
 	sp uint8
 
+	// TODO: need to implement
 	delayTimer uint8
 	soundTimer uint8
 }
@@ -108,7 +107,7 @@ func NewChip8() Chip8 {
 }
 
 func (c *Chip8) LoadRom(rom Rom) {
-	c.romName = rom.Name
+	c.rom = rom
 	copy(c.ram[c.pc:], rom.Data)
 }
 
@@ -120,8 +119,8 @@ func (c Chip8) GetTPS() int {
 	return DefaultTPS
 }
 
-func (c Chip8) GetRomBaseName() string {
-	return c.romName
+func (c Chip8) GetRomName() string {
+	return c.rom.Name
 }
 
 func (c *Chip8) Emulate() {
@@ -137,14 +136,13 @@ func (c *Chip8) Emulate() {
 		return
 	}
 
-	opcode := opcode(uint16(c.ram[c.pc])<<8 | uint16(c.ram[c.pc+1]))
-	typ := opcode.typ()
-	n := opcode.n()
-	nn := opcode.nn()
-	nnn := opcode.nnn()
-	x := opcode.x()
-	y := opcode.y()
-
+	opcode := uint16(c.ram[c.pc])<<8 | uint16(c.ram[c.pc+1])
+	typ := uint8((opcode >> 12) & 0x0f)
+	nnn := uint16(opcode & 0x0fff)
+	nn := uint8(opcode & 0x00ff)
+	n := uint8(opcode & 0x000f)
+	x := uint8((opcode >> 8) & 0x0f)
+	y := uint8((opcode >> 4) & 0x0f)
 	opcodeString := "unimplemented"
 
 	c.pc += 2
@@ -425,12 +423,3 @@ var emptyScreen = make([]bool, ScreenSize)
 func (c *Chip8) clearScreen() {
 	copy(c.Screen[:], emptyScreen)
 }
-
-type opcode uint16
-
-func (o opcode) typ() uint8  { return uint8((o >> 12) & 0x0f) }
-func (o opcode) nnn() uint16 { return uint16(o & 0x0fff) }
-func (o opcode) nn() uint8   { return uint8(o & 0x00ff) }
-func (o opcode) n() uint8    { return uint8(o & 0x000f) }
-func (o opcode) x() uint8    { return uint8((o >> 8) & 0x0f) }
-func (o opcode) y() uint8    { return uint8((o >> 4) & 0x0f) }

@@ -57,7 +57,7 @@ func (r Renderer) Layout(int, int) (int, int) {
 func (r Renderer) Run() error {
 	ebiten.SetTPS(r.chip8.GetTPS())
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-	ebiten.SetWindowTitle("CHIP8 Emulator: " + r.chip8.GetRomBaseName())
+	ebiten.SetWindowTitle("CHIP8 Emulator: " + r.chip8.GetRomName())
 
 	if err := ebiten.RunGame(r); err != nil {
 		return fmt.Errorf("run renderer: %w", err)

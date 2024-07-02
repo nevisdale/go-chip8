@@ -288,7 +288,9 @@ func (c *Chip8) Emulate() {
 			if c.regsV[x] >= c.regsV[y] {
 				c.regsV[0xf] = 0x1
 			}
-			c.regsV[x] = c.regsV[x] - c.regsV[y]
+			c.regsV[x] -= c.regsV[y]
+
+			opcodeString = fmt.Sprintf("v%X -= v%X with flags", x, y)
 
 		case 0x06:
 		case 0x07:

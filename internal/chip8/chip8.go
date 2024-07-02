@@ -91,8 +91,8 @@ type Chip8 struct {
 	sp uint8
 
 	// TODO: need to implement
-	delayTimer uint8
-	soundTimer uint8
+	// delayTimer uint8
+	// soundTimer uint8
 }
 
 func NewChip8() Chip8 {
@@ -292,7 +292,15 @@ func (c *Chip8) Emulate() {
 
 			opcodeString = fmt.Sprintf("v%X -= v%X with flags", x, y)
 
+		// 8XY6
+		// If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 0.
+		// Then Vx is divided by 2.
 		case 0x06:
+			c.regsV[0xf] = c.regsV[x] & 0x01
+			c.regsV[x] >>= 1
+
+			opcodeString = fmt.Sprintf("V%X >>= 1", x)
+
 		case 0x07:
 		case 0x0e:
 		}

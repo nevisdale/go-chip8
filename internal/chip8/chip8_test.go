@@ -456,6 +456,38 @@ func TestChip8_Emulate(t *testing.T) {
 
 		require.Equal(t, uint8(1), chip8.regsV[0xf])
 		require.Equal(t, expectedV0<<1, chip8.regsV[0])
+	})
 
+	t.Run("9XY0", func(t *testing.T) {
+		rom := Rom{
+			Data: []byte{
+				0x60, 0x11, // v[0] = 0x11
+				0x61, 0x14, // v[1] = 0x14
+				0x90, 0x10, // if v[0] != v[1] then skip the next instruction
+				0x00, 0xe0, // clear screen
+				0x00, 0x00, // do nothing
+
+				0x80, 0x10, // v[0] = v[1]
+				0x90, 0x10, // if v[0] != v[1] then skip the next instruction
+				0x00, 0xe0, // clear screen
+				0x00, 0x00, // do nothing
+			},
+		}
+
+		chip8 := NewChip8()
+		chip8.LoadRom(rom)
+
+		chip8.Screen[0] = true
+
+		chip8.Emulate()
+		chip8.Emulate()
+		chip8.Emulate()
+		chip8.Emulate()
+		require.True(t, chip8.Screen[0])
+
+		chip8.Emulate()
+		chip8.Emulate()
+		chip8.Emulate()
+		require.False(t, chip8.Screen[0])
 	})
 }

@@ -327,6 +327,23 @@ func (c *Chip8) Emulate() {
 			opcodeString = fmt.Sprintf("V%X <<= 1", x)
 		}
 
+	case 0x09:
+		switch n {
+
+		// 9XY0
+		// Skips the next instruction if VX does not equal VY
+		case 0x0:
+			if c.regsV[x] != c.regsV[y] {
+				c.pc += 2
+			}
+
+			opcodeString = fmt.Sprintf("if V%X != V%X", x, y)
+
+		default:
+			opcodeString = "undocumented. n must be 0"
+			log.Println("n must be 0 for 9XY0 opcode")
+		}
+
 	// ANNN: Store memory address NNN in register I
 	//
 	// TODO: need to test

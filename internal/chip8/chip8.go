@@ -356,9 +356,8 @@ func (c *Chip8) Emulate() {
 	case 0x0b:
 		c.pc = nnn + uint16(c.regsV[0])
 
-	// CXNN: Set VX to a random number with a mask of NN
-	//
-	// TODO: need to test
+	// CXNN
+	// Sets VX to the result of a bitwise and operation on a random number (Typically: 0 to 255) and NN
 	case 0xc:
 		c.regsV[x] = uint8(v2.IntN(0x100)) & nn
 

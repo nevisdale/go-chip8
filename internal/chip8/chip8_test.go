@@ -529,4 +529,20 @@ func TestChip8_Emulate(t *testing.T) {
 
 		require.True(t, chip8.Screen[0])
 	})
+
+	t.Run("CXNN", func(t *testing.T) {
+		expectedNN := uint8(0x67)
+
+		rom := Rom{
+			Data: []byte{
+				0xc0, 0x67, // v[0] = rand() & 0x67
+			},
+		}
+
+		chip8 := NewChip8()
+		chip8.LoadRom(rom)
+
+		chip8.Emulate()
+		require.GreaterOrEqual(t, expectedNN, chip8.regsV[0])
+	})
 }

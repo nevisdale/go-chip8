@@ -11,12 +11,12 @@ import (
 
 const (
 	RamSizeBytes = 0x1000 // 4096
-	EntryPoint   = 0x200  // 512
+	entryPoint   = 0x200  // 512
 
 	// from 0x000 to 0x1FF is Reserved for interpreter
 	//
 	// see more http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#2.1
-	RomMaxSizeBytes = RamSizeBytes - EntryPoint
+	RomMaxSizeBytes = RamSizeBytes - entryPoint
 
 	// The original implementation of the Chip-8 language used
 	// a 64x32-pixel monochrome display
@@ -104,7 +104,7 @@ type Chip8 struct {
 func NewChip8() Chip8 {
 	chip8 := Chip8{
 		State: StateRunning,
-		pc:    EntryPoint,
+		pc:    entryPoint,
 
 		tps:          defaultTPS,
 		tickDuration: time.Second / time.Duration(defaultTPS),

@@ -13,12 +13,14 @@ var (
 	romPath    string
 	fgColorHex string
 	bgColorHex string
+	tps        int
 )
 
 func main() {
 	flag.StringVar(&romPath, "f", "", "rom file. is required")
 	flag.StringVar(&fgColorHex, "fg", "FFFFFFFF", "rgba foreground color in hex. white is default")
 	flag.StringVar(&bgColorHex, "bg", "000000FF", "rgba background color in hex. black is default")
+	flag.IntVar(&tps, "tps", 60, "tps")
 	flag.Parse()
 
 	if len(romPath) == 0 {
@@ -45,6 +47,7 @@ func main() {
 
 	chip8 := chip8.NewChip8()
 	chip8.LoadRom(rom)
+	chip8.SetTPS(tps)
 
 	renderer := renderer.NewFromConfig(&chip8, renderer.Config{
 		FgColor: fgColor,

@@ -29,7 +29,7 @@ const (
 
 	// Ticks per second
 	// see more http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#2.5
-	DefaultTPS = 60
+	defaultTPS = 60
 
 	StackMaxSize = 16
 )
@@ -94,12 +94,20 @@ type Chip8 struct {
 
 	delayTimer uint8
 	soundTimer uint8
+
+	// ticks per second
+	tps int
+	// time that takes to make a one command (tick)
+	tickDuration time.Duration
 }
 
 func NewChip8() Chip8 {
 	chip8 := Chip8{
 		State: StateRunning,
 		pc:    EntryPoint,
+
+		tps:          defaultTPS,
+		tickDuration: time.Second / time.Duration(defaultTPS),
 	}
 
 	copy(chip8.ram[:], font)
@@ -112,12 +120,19 @@ func (c *Chip8) LoadRom(rom Rom) {
 	copy(c.ram[c.pc:], rom.Data)
 }
 
+func (c *Chip8) SetTPS(tps int) {
+	if tps > 0 {
+		c.tps = tps
+		c.tickDuration = time.Second / time.Duration(tps)
+	}
+}
+
 func (c Chip8) ScreenSize() (int, int) {
 	return ScreenWidth, ScreenHeight
 }
 
 func (c Chip8) GetTPS() int {
-	return DefaultTPS
+	return c.tps
 }
 
 func (c Chip8) GetRomName() string {
@@ -125,12 +140,11 @@ func (c Chip8) GetRomName() string {
 }
 
 func (c *Chip8) Emulate() {
-	// emulate 60 hz
 	start := time.Now()
 	defer func() {
 		elapsed := time.Since(start)
-		howMuchToSleep := (time.Second / DefaultTPS) - elapsed
-		time.Sleep(howMuchToSleep)
+		needToSleep := c.tickDuration - elapsed
+		time.Sleep(needToSleep)
 	}()
 
 	if c.pc >= RamSizeBytes {

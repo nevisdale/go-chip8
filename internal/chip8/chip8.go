@@ -118,6 +118,10 @@ func NewChip8() Chip8 {
 func (c *Chip8) LoadRom(rom Rom) {
 	c.rom = rom
 	copy(c.ram[c.pc:], rom.Data)
+
+}
+func (c Chip8) GetRomName() string {
+	return c.rom.Name
 }
 
 func (c *Chip8) SetTPS(tps int) {
@@ -127,16 +131,12 @@ func (c *Chip8) SetTPS(tps int) {
 	}
 }
 
-func (c Chip8) ScreenSize() (width int, height int) {
-	return screenWidth, screenHeight
-}
-
 func (c Chip8) GetTPS() int {
 	return c.tps
 }
 
-func (c Chip8) GetRomName() string {
-	return c.rom.Name
+func (c Chip8) ScreenSize() (width int, height int) {
+	return screenWidth, screenHeight
 }
 
 func (c *Chip8) Emulate() {
@@ -577,4 +577,13 @@ func (c *Chip8) SetKey(key uint8, isPressed bool) {
 		return
 	}
 	c.keyPad[key] = isPressed
+}
+
+func (c *Chip8) KeyIsPressed(key uint8) bool {
+	if key >= keyPadSize {
+		log.Println("key is invalid. do nothing")
+		return false
+	}
+
+	return c.keyPad[key]
 }

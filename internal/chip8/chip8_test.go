@@ -603,4 +603,24 @@ func TestChip8_Emulate(t *testing.T) {
 
 		require.Equal(t, expectedDelayTimer, chip8.regsV[0])
 	})
+
+	t.Run("FX15", func(t *testing.T) {
+		expectedDelayTimer := uint8(0x8)
+
+		rom := Rom{
+			Data: []byte{
+				0x60, 0x08, // v[0] = 0x8
+				0xf0, 0x15, // delay timer = v[0]
+			},
+		}
+
+		chip8 := NewChip8()
+		chip8.LoadRom(rom)
+		chip8.Emulate()
+		chip8.Emulate()
+
+		// delay timer decreases every tick even after setting a value
+		expectedDelayTimer--
+		require.Equal(t, expectedDelayTimer, chip8.delayTimer)
+	})
 }

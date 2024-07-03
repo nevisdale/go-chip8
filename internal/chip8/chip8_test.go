@@ -20,13 +20,13 @@ func TestChip8_Emulate(t *testing.T) {
 		chip8.LoadRom(rom)
 
 		// dirty screen
-		for i := 0; i < ScreenSize; i++ {
+		for i := 0; i < screenSize; i++ {
 			chip8.Screen[i] = true
 		}
 
 		chip8.Emulate()
 
-		for i := 0; i < ScreenSize; i++ {
+		for i := 0; i < screenSize; i++ {
 			require.False(t, chip8.Screen[i])
 		}
 	})

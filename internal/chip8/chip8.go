@@ -10,28 +10,28 @@ import (
 )
 
 const (
-	RamSizeBytes = 0x1000 // 4096
+	ramSizeBytes = 0x1000 // 4096
 	entryPoint   = 0x200  // 512
 
 	// from 0x000 to 0x1FF is Reserved for interpreter
 	//
 	// see more http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#2.1
-	RomMaxSizeBytes = RamSizeBytes - entryPoint
+	romMaxSizeBytes = ramSizeBytes - entryPoint
 
 	// The original implementation of the Chip-8 language used
 	// a 64x32-pixel monochrome display
-	ScreenWidth  = 64
-	ScreenHeight = 32
-	ScreenSize   = ScreenWidth * ScreenHeight
+	screenWidth  = 64
+	screenHeight = 32
+	screenSize   = screenWidth * screenHeight
 
 	// // http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#2.3
-	KeyPadSize = 0x10
+	keyPadSize = 0x10
 
 	// Ticks per second
 	// see more http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#2.5
 	defaultTPS = 60
 
-	StackMaxSize = 16
+	stackMaxSize = 16
 )
 
 // http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#font
@@ -63,14 +63,14 @@ const (
 )
 
 type Chip8 struct {
-	ram [RamSizeBytes]byte
+	ram [ramSizeBytes]byte
 	rom Rom
 
 	State State
 
-	Screen [ScreenSize]bool
+	Screen [screenSize]bool
 
-	KeyPad [KeyPadSize]bool
+	KeyPad [keyPadSize]bool
 
 	// 16 general purpose 8-bit registers
 	regsV [0x10]uint8
@@ -86,7 +86,7 @@ type Chip8 struct {
 	// The stack is an array of 16 16-bit values,
 	// used to store the address that the interpreter shoud return to when finished with a subroutine.
 	// Chip-8 allows for up to 16 levels of nested subroutines
-	stack [StackMaxSize]uint16
+	stack [stackMaxSize]uint16
 
 	// used to point to the next level of the stack.
 	// starts from 0
@@ -128,7 +128,7 @@ func (c *Chip8) SetTPS(tps int) {
 }
 
 func (c Chip8) ScreenSize() (int, int) {
-	return ScreenWidth, ScreenHeight
+	return screenWidth, screenHeight
 }
 
 func (c Chip8) GetTPS() int {
@@ -147,7 +147,7 @@ func (c *Chip8) Emulate() {
 		time.Sleep(needToSleep)
 	}()
 
-	if c.pc >= RamSizeBytes {
+	if c.pc >= ramSizeBytes {
 		return
 	}
 
@@ -202,7 +202,7 @@ func (c *Chip8) Emulate() {
 	// 2NNN
 	// Calls subroutine at NNN
 	case 0x02:
-		if c.sp == StackMaxSize {
+		if c.sp == stackMaxSize {
 			log.Println("stack overflow")
 			os.Exit(1)
 		}
@@ -387,8 +387,8 @@ func (c *Chip8) Emulate() {
 	// As described above, VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn,
 	// and to 0 if that does not happen.
 	case 0x0d:
-		posX := int(c.regsV[x] & (ScreenWidth - 1))
-		posY := int(c.regsV[y] & (ScreenHeight - 1))
+		posX := int(c.regsV[x] & (screenWidth - 1))
+		posY := int(c.regsV[y] & (screenHeight - 1))
 		c.regsV[0xf] = 0x0
 
 		for i := uint8(0); i < n; i++ {
@@ -397,7 +397,7 @@ func (c *Chip8) Emulate() {
 			posXi := posX
 			for j := int8(7); j >= 0; j-- {
 				sprPixelOn := spriteData&(1<<j) > 0
-				posScreen := posY*ScreenWidth + posXi
+				posScreen := posY*screenWidth + posXi
 
 				// screen pixel is on and sprite pixel is on, set carry flag
 				if sprPixelOn && c.Screen[posScreen] {
@@ -406,13 +406,13 @@ func (c *Chip8) Emulate() {
 				c.Screen[posScreen] = c.Screen[posScreen] != sprPixelOn
 
 				posXi++
-				if posXi >= ScreenWidth {
+				if posXi >= screenWidth {
 					break
 				}
 			}
 
 			posY++
-			if posY >= ScreenHeight {
+			if posY >= screenHeight {
 				break
 			}
 		}
@@ -462,14 +462,14 @@ func (c *Chip8) Emulate() {
 			var i uint8
 		outer:
 
-			for i = uint8(0); i < KeyPadSize; i++ {
+			for i = uint8(0); i < keyPadSize; i++ {
 				if c.KeyPad[i] {
 					c.regsV[x] = i
 					break outer
 				}
 			}
 
-			if i == KeyPadSize {
+			if i == keyPadSize {
 				c.pc -= 2
 				log.Println("waiting to press")
 				return
@@ -565,14 +565,14 @@ func (c *Chip8) Emulate() {
 	fmt.Printf("%04X: %04X %s\n", c.pc, opcode, opcodeString)
 }
 
-var emptyScreen = make([]bool, ScreenSize)
+var emptyScreen = make([]bool, screenSize)
 
 func (c *Chip8) clearScreen() {
 	copy(c.Screen[:], emptyScreen)
 }
 
 func (c *Chip8) SetKey(key uint8, isPressed bool) {
-	if key >= KeyPadSize {
+	if key >= keyPadSize {
 		log.Println("key is invalid. do nothing")
 		return
 	}

@@ -17,9 +17,9 @@ func NewRomFromFile(romPath string) (Rom, error) {
 		return Rom{}, fmt.Errorf("read data from rom file %s: %w", romPath, err)
 	}
 
-	if len(data) > RomMaxSizeBytes {
+	if len(data) > romMaxSizeBytes {
 		return Rom{}, fmt.Errorf("rom file %s is too large. actual size is %d bytes, max size is %d bytes",
-			romPath, len(data), RomMaxSizeBytes,
+			romPath, len(data), romMaxSizeBytes,
 		)
 	}
 

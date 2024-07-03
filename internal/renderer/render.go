@@ -10,11 +10,19 @@ import (
 	"github.com/nevisdale/go-chip8/internal/chip8"
 )
 
-var keyBindings = map[uint8]ebiten.Key{
-	0x0: ebiten.Key0, 0x1: ebiten.Key1, 0x2: ebiten.Key2, 0x3: ebiten.Key3,
-	0x4: ebiten.Key4, 0x5: ebiten.Key5, 0x6: ebiten.Key6, 0x7: ebiten.Key7,
-	0x8: ebiten.Key8, 0x9: ebiten.Key9, 0xa: ebiten.KeyA, 0xb: ebiten.KeyB,
-	0xc: ebiten.KeyC, 0xd: ebiten.KeyD, 0xe: ebiten.KeyE, 0xf: ebiten.KeyF,
+// ====================
+// keyboard key mapping
+// ====================
+//
+//	1 2 3 C  -> 1 2 3 4
+//	4 5 6 D  -> Q W E R
+//	7 8 9 E  -> A S D F
+//	A 0 B F  -> Z X C V
+var keyboardMapping = map[uint8]ebiten.Key{
+	0x1: ebiten.Key1, 0x2: ebiten.Key2, 0x3: ebiten.Key3, 0xC: ebiten.Key4,
+	0x4: ebiten.KeyQ, 0x5: ebiten.KeyW, 0x6: ebiten.KeyE, 0xD: ebiten.KeyR,
+	0x7: ebiten.KeyA, 0x8: ebiten.KeyS, 0x9: ebiten.KeyD, 0xE: ebiten.KeyF,
+	0xA: ebiten.KeyZ, 0x0: ebiten.KeyX, 0xB: ebiten.KeyC, 0xF: ebiten.KeyV,
 }
 
 type Config struct {
@@ -43,7 +51,7 @@ func (r *Renderer) Update() error {
 		return ebiten.Termination
 	}
 
-	for chip8Key, ebitenKey := range keyBindings {
+	for chip8Key, ebitenKey := range keyboardMapping {
 		r.chip8.SetKey(chip8Key, ebiten.IsKeyPressed(ebitenKey))
 	}
 	r.chip8.Emulate()

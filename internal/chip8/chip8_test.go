@@ -623,4 +623,24 @@ func TestChip8_Emulate(t *testing.T) {
 		expectedDelayTimer--
 		require.Equal(t, expectedDelayTimer, chip8.delayTimer)
 	})
+
+	t.Run("FX18", func(t *testing.T) {
+		expectedSoundTimer := uint8(0x8)
+
+		rom := Rom{
+			Data: []byte{
+				0x60, 0x08, // v[0] = 0x8
+				0xf0, 0x18, // sound timer = v[0]
+			},
+		}
+
+		chip8 := NewChip8()
+		chip8.LoadRom(rom)
+		chip8.Emulate()
+		chip8.Emulate()
+
+		// sound timer decreases every tick even after setting a value
+		expectedSoundTimer--
+		require.Equal(t, expectedSoundTimer, chip8.soundTimer)
+	})
 }

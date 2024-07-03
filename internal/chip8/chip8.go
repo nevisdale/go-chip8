@@ -127,7 +127,7 @@ func (c *Chip8) SetTPS(tps int) {
 	}
 }
 
-func (c Chip8) ScreenSize() (int, int) {
+func (c Chip8) ScreenSize() (width int, height int) {
 	return screenWidth, screenHeight
 }
 

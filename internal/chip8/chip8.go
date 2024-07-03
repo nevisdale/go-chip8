@@ -56,10 +56,19 @@ var font []byte = []byte{
 
 type State int
 
+func (s State) String() string {
+	switch s {
+	case StateRunning:
+		return "Running"
+	case StatePaused:
+		return "Paused"
+	}
+	return ""
+}
+
 const (
 	StateRunning State = iota
 	StatePaused
-	StateQuit
 )
 
 type Chip8 struct {
@@ -585,7 +594,7 @@ func (c Chip8) ScreenSize() (width int, height int) {
 
 func (c Chip8) ScreenPixelSetAt(x, y int) bool {
 	pos := y*screenWidth + x
-	if pos > 0 && pos < screenSize {
+	if pos >= 0 && pos < screenSize {
 		return c.screen[pos]
 	}
 	return false
@@ -609,10 +618,14 @@ func (c *Chip8) KeyIsPressed(key uint8) bool {
 }
 
 func (c *Chip8) TogglePause() {
-	switch {
-	case c.state == StatePaused:
+	switch c.state {
+	case StatePaused:
 		c.state = StateRunning
-	case c.state == StateRunning:
+	case StateRunning:
 		c.state = StatePaused
 	}
+}
+
+func (c Chip8) GetState() State {
+	return c.state
 }

@@ -62,15 +62,15 @@ func (r *Renderer) Update() error {
 func (r *Renderer) Draw(screen *ebiten.Image) {
 	screen.Fill(r.bgColor)
 
-	w, _ := r.chip8.ScreenSize()
-	for i := 0; i < len(r.chip8.Screen); i++ {
-		if !r.chip8.Screen[i] {
-			continue
+	for x := 0; x < r.chip8.ScreenWidth(); x++ {
+		for y := 0; y < r.chip8.ScreenHeight(); y++ {
+			if !r.chip8.ScreenPixelSetAt(x, y) {
+				continue
+			}
+
+			screen.Set(x, y, r.fgColor)
 		}
 
-		posX := i % w
-		posY := i / w
-		screen.Set(posX, posY, r.fgColor)
 	}
 }
 

@@ -21,13 +21,13 @@ func TestChip8_Emulate(t *testing.T) {
 
 		// dirty screen
 		for i := 0; i < screenSize; i++ {
-			chip8.Screen[i] = true
+			chip8.screen[i] = true
 		}
 
 		chip8.Emulate()
 
 		for i := 0; i < screenSize; i++ {
-			require.False(t, chip8.Screen[i])
+			require.False(t, chip8.screen[i])
 		}
 	})
 
@@ -61,16 +61,16 @@ func TestChip8_Emulate(t *testing.T) {
 
 		chip8 := NewChip8()
 		chip8.LoadRom(rom)
-		chip8.Screen[0] = true
+		chip8.screen[0] = true
 
 		chip8.Emulate() // go to 0x204
 		chip8.Emulate() // v[0] = 0x78
 		require.Equal(t, expectedV0, chip8.regsV[0], "reg v0")
-		require.True(t, chip8.Screen[0], "screen")
+		require.True(t, chip8.screen[0], "screen")
 
 		chip8.Emulate() // return to 0x202
 		chip8.Emulate() // clear screen
-		require.False(t, chip8.Screen[0], "screen")
+		require.False(t, chip8.screen[0], "screen")
 	})
 
 	t.Run("3XNN", func(t *testing.T) {
@@ -477,18 +477,18 @@ func TestChip8_Emulate(t *testing.T) {
 		chip8 := NewChip8()
 		chip8.LoadRom(rom)
 
-		chip8.Screen[0] = true
+		chip8.screen[0] = true
 
 		chip8.Emulate()
 		chip8.Emulate()
 		chip8.Emulate()
 		chip8.Emulate()
-		require.True(t, chip8.Screen[0])
+		require.True(t, chip8.screen[0])
 
 		chip8.Emulate()
 		chip8.Emulate()
 		chip8.Emulate()
-		require.False(t, chip8.Screen[0])
+		require.False(t, chip8.screen[0])
 	})
 
 	t.Run("ANNN", func(t *testing.T) {
@@ -521,13 +521,13 @@ func TestChip8_Emulate(t *testing.T) {
 		chip8 := NewChip8()
 		chip8.LoadRom(rom)
 
-		chip8.Screen[0] = true
+		chip8.screen[0] = true
 
 		chip8.Emulate()
 		chip8.Emulate()
 		chip8.Emulate()
 
-		require.True(t, chip8.Screen[0])
+		require.True(t, chip8.screen[0])
 	})
 
 	t.Run("CXNN", func(t *testing.T) {
@@ -558,12 +558,12 @@ func TestChip8_Emulate(t *testing.T) {
 		chip8.LoadRom(rom)
 
 		chip8.keyPad[0] = true
-		chip8.Screen[0] = true
+		chip8.screen[0] = true
 
 		chip8.Emulate()
 		chip8.Emulate()
 
-		require.True(t, chip8.Screen[0])
+		require.True(t, chip8.screen[0])
 	})
 
 	t.Run("EXA1", func(t *testing.T) {
@@ -578,12 +578,12 @@ func TestChip8_Emulate(t *testing.T) {
 		chip8.LoadRom(rom)
 
 		chip8.keyPad[0] = false
-		chip8.Screen[0] = true
+		chip8.screen[0] = true
 
 		chip8.Emulate()
 		chip8.Emulate()
 
-		require.True(t, chip8.Screen[0])
+		require.True(t, chip8.screen[0])
 	})
 
 	t.Run("FX07", func(t *testing.T) {

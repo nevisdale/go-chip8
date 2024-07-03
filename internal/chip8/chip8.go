@@ -66,9 +66,9 @@ type Chip8 struct {
 	ram [ramSizeBytes]byte
 	rom Rom
 
-	State State
+	state State
 
-	Screen [screenSize]bool
+	screen [screenSize]bool
 
 	keyPad [keyPadSize]bool
 
@@ -103,7 +103,7 @@ type Chip8 struct {
 
 func NewChip8() Chip8 {
 	chip8 := Chip8{
-		State: StateRunning,
+		state: StateRunning,
 		pc:    entryPoint,
 
 		tps:          defaultTPS,
@@ -133,10 +133,6 @@ func (c *Chip8) SetTPS(tps int) {
 
 func (c Chip8) GetTPS() int {
 	return c.tps
-}
-
-func (c Chip8) ScreenSize() (width int, height int) {
-	return screenWidth, screenHeight
 }
 
 func (c *Chip8) Emulate() {
@@ -400,10 +396,10 @@ func (c *Chip8) Emulate() {
 				posScreen := posY*screenWidth + posXi
 
 				// screen pixel is on and sprite pixel is on, set carry flag
-				if sprPixelOn && c.Screen[posScreen] {
+				if sprPixelOn && c.screen[posScreen] {
 					c.regsV[0xf] = 0x1
 				}
-				c.Screen[posScreen] = c.Screen[posScreen] != sprPixelOn
+				c.screen[posScreen] = c.screen[posScreen] != sprPixelOn
 
 				posXi++
 				if posXi >= screenWidth {
@@ -568,7 +564,27 @@ func (c *Chip8) Emulate() {
 var emptyScreen = make([]bool, screenSize)
 
 func (c *Chip8) clearScreen() {
-	copy(c.Screen[:], emptyScreen)
+	copy(c.screen[:], emptyScreen)
+}
+
+func (c Chip8) ScreenWidth() int {
+	return screenWidth
+}
+
+func (c Chip8) ScreenHeight() int {
+	return screenHeight
+}
+
+func (c Chip8) ScreenSize() (width int, height int) {
+	return screenWidth, screenHeight
+}
+
+func (c Chip8) ScreenPixelSetAt(x, y int) bool {
+	pos := y*screenWidth + x
+	if pos > 0 && pos < screenSize {
+		return c.screen[pos]
+	}
+	return false
 }
 
 func (c *Chip8) SetKey(key uint8, isPressed bool) {

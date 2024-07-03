@@ -64,18 +64,15 @@ func (r *Renderer) Update() error {
 }
 
 func (r *Renderer) Draw(screen *ebiten.Image) {
-	screen.Fill(r.bgColor)
-
 	for x := 0; x < r.chip8.ScreenWidth(); x++ {
 		for y := 0; y < r.chip8.ScreenHeight(); y++ {
 			if !r.chip8.ScreenPixelSetAt(x, y) {
-				continue
+				screen.Set(x, y, r.bgColor)
+			} else {
+				screen.Set(x, y, r.fgColor)
 			}
-
-			screen.Set(x, y, r.fgColor)
 		}
 	}
-
 }
 
 func (r *Renderer) Layout(int, int) (int, int) {

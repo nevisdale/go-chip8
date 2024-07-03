@@ -3,7 +3,7 @@ module github.com/nevisdale/go-chip8
 go 1.22.4
 
 require (
-	github.com/hajimehoshi/ebiten/v2 v2.7.5
+	github.com/hajimehoshi/ebiten/v2 v2.7.6
 	github.com/stretchr/testify v1.9.0
 )
 

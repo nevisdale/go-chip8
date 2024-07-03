@@ -70,7 +70,7 @@ type Chip8 struct {
 
 	Screen [screenSize]bool
 
-	KeyPad [keyPadSize]bool
+	keyPad [keyPadSize]bool
 
 	// 16 general purpose 8-bit registers
 	regsV [0x10]uint8
@@ -425,7 +425,7 @@ func (c *Chip8) Emulate() {
 		// EX9E
 		// Skips the next instruction if the key stored in VX is pressed
 		case 0x9e:
-			if c.regsV[x] < 0x10 && c.KeyPad[c.regsV[x]] {
+			if c.regsV[x] < 0x10 && c.keyPad[c.regsV[x]] {
 				c.pc += 2
 			}
 
@@ -434,7 +434,7 @@ func (c *Chip8) Emulate() {
 		// EXA1
 		// Skips the next instruction if the key stored in VX is not pressed
 		case 0xa1:
-			if c.regsV[x] < 0x10 && !c.KeyPad[c.regsV[x]] {
+			if c.regsV[x] < 0x10 && !c.keyPad[c.regsV[x]] {
 				c.pc += 2
 			}
 
@@ -463,7 +463,7 @@ func (c *Chip8) Emulate() {
 		outer:
 
 			for i = uint8(0); i < keyPadSize; i++ {
-				if c.KeyPad[i] {
+				if c.keyPad[i] {
 					c.regsV[x] = i
 					break outer
 				}
@@ -576,5 +576,5 @@ func (c *Chip8) SetKey(key uint8, isPressed bool) {
 		log.Println("key is invalid. do nothing")
 		return
 	}
-	c.KeyPad[key] = isPressed
+	c.keyPad[key] = isPressed
 }

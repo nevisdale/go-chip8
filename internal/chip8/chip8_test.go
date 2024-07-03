@@ -557,7 +557,7 @@ func TestChip8_Emulate(t *testing.T) {
 		chip8 := NewChip8()
 		chip8.LoadRom(rom)
 
-		chip8.KeyPad[0] = true
+		chip8.keyPad[0] = true
 		chip8.Screen[0] = true
 
 		chip8.Emulate()
@@ -577,7 +577,7 @@ func TestChip8_Emulate(t *testing.T) {
 		chip8 := NewChip8()
 		chip8.LoadRom(rom)
 
-		chip8.KeyPad[0] = false
+		chip8.keyPad[0] = false
 		chip8.Screen[0] = true
 
 		chip8.Emulate()

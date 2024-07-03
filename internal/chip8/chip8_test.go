@@ -585,4 +585,22 @@ func TestChip8_Emulate(t *testing.T) {
 
 		require.True(t, chip8.Screen[0])
 	})
+
+	t.Run("FX07", func(t *testing.T) {
+		expectedDelayTimer := uint8(8)
+
+		rom := Rom{
+			Data: []byte{
+				0xf0, 0x07, // v[0] = delay timer
+			},
+		}
+
+		chip8 := NewChip8()
+		chip8.LoadRom(rom)
+
+		chip8.delayTimer = expectedDelayTimer
+		chip8.Emulate()
+
+		require.Equal(t, expectedDelayTimer, chip8.regsV[0])
+	})
 }

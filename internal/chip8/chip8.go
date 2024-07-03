@@ -459,9 +459,9 @@ func (c *Chip8) Emulate() {
 				c.pc -= 2
 				log.Println("waiting to press")
 				return
-			} else {
-				opcodeString = fmt.Sprintf("%X is pressed", i)
 			}
+
+			opcodeString = fmt.Sprintf("%X is pressed", i)
 
 		// FX15
 		// Sets the delay timer to VX

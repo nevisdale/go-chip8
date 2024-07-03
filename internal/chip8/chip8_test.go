@@ -643,4 +643,24 @@ func TestChip8_Emulate(t *testing.T) {
 		expectedSoundTimer--
 		require.Equal(t, expectedSoundTimer, chip8.soundTimer)
 	})
+
+	t.Run("FX1E", func(t *testing.T) {
+		expectedVI := uint16(0x78 + 0x8)
+
+		rom := Rom{
+			Data: []byte{
+				0xa0, 0x78, // vI = 0x78
+				0x60, 0x08, // v[0] = 0x8
+				0xf0, 0x1e, // vI += v[0]
+			},
+		}
+
+		chip8 := NewChip8()
+		chip8.LoadRom(rom)
+		chip8.Emulate()
+		chip8.Emulate()
+		chip8.Emulate()
+
+		require.Equal(t, expectedVI, chip8.regI)
+	})
 }

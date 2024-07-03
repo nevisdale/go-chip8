@@ -51,6 +51,10 @@ func (r *Renderer) Update() error {
 		return ebiten.Termination
 	}
 
+	if inpututil.IsKeyJustPressed(ebiten.KeyP) {
+		r.chip8.TogglePause()
+	}
+
 	for chip8Key, ebitenKey := range keyboardMapping {
 		r.chip8.SetKey(chip8Key, ebiten.IsKeyPressed(ebitenKey))
 	}
@@ -70,8 +74,8 @@ func (r *Renderer) Draw(screen *ebiten.Image) {
 
 			screen.Set(x, y, r.fgColor)
 		}
-
 	}
+
 }
 
 func (r *Renderer) Layout(int, int) (int, int) {

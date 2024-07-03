@@ -143,6 +143,10 @@ func (c *Chip8) Emulate() {
 		time.Sleep(needToSleep)
 	}()
 
+	if c.state != StateRunning {
+		return
+	}
+
 	if c.pc >= ramSizeBytes {
 		return
 	}
@@ -602,4 +606,13 @@ func (c *Chip8) KeyIsPressed(key uint8) bool {
 	}
 
 	return c.keyPad[key]
+}
+
+func (c *Chip8) TogglePause() {
+	switch {
+	case c.state == StatePaused:
+		c.state = StateRunning
+	case c.state == StateRunning:
+		c.state = StatePaused
+	}
 }

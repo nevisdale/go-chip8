@@ -92,9 +92,8 @@ type Chip8 struct {
 	// starts from 0
 	sp uint8
 
-	// TODO: need to implement
-	// delayTimer uint8
-	// soundTimer uint8
+	delayTimer uint8
+	soundTimer uint8
 }
 
 func NewChip8() Chip8 {
@@ -130,7 +129,7 @@ func (c *Chip8) Emulate() {
 	start := time.Now()
 	defer func() {
 		elapsed := time.Since(start)
-		howMuchToSleep := (time.Second / 60) - elapsed
+		howMuchToSleep := (time.Second / DefaultTPS) - elapsed
 		time.Sleep(howMuchToSleep)
 	}()
 
@@ -358,10 +357,14 @@ func (c *Chip8) Emulate() {
 	case 0x0b:
 		c.pc = nnn + uint16(c.regsV[0])
 
+		opcodeString = fmt.Sprintf("jump to %02X", c.pc)
+
 	// CXNN
 	// Sets VX to the result of a bitwise and operation on a random number (Typically: 0 to 255) and NN
 	case 0xc:
 		c.regsV[x] = uint8(v2.IntN(0x100)) & nn
+
+		opcodeString = fmt.Sprintf("V%X = rnd() & %02X", x, nn)
 
 	// DXYN
 	// Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
@@ -407,10 +410,12 @@ func (c *Chip8) Emulate() {
 
 		// EX9E
 		// Skips the next instruction if the key stored in VX is pressed
-		case 0x93:
+		case 0x9e:
 			if c.regsV[x] < 0x10 && c.KeyPad[c.regsV[x]] {
 				c.pc += 2
 			}
+
+			opcodeString = fmt.Sprintf("if keypad[%X] pressed than skip the next", c.regsV[x])
 
 		// EXA1
 		// Skips the next instruction if the key stored in VX is not pressed
@@ -419,73 +424,131 @@ func (c *Chip8) Emulate() {
 				c.pc += 2
 			}
 
+			opcodeString = fmt.Sprintf("if keypad[%X] not pressed than skip the next", c.regsV[x])
+
 		default:
 			opcodeString = fmt.Sprintf("unknown opcode %04X", opcode)
 			log.Println(opcodeString)
 		}
 
+	case 0x0f:
+		switch nn {
+
+		// FX07
+		// Sets VX to the value of the delay timer
+		case 0x07:
+			c.regsV[x] = c.delayTimer
+
+			opcodeString = fmt.Sprintf("V%X = delay timer(%X)", x, c.delayTimer)
+
+		// FX0A
+		// A key press is awaited, and then stored in VX
+		// (blocking operation, all instruction halted until next key event)
+		case 0x0a:
+			var i uint8
+		outer:
+
+			for i = uint8(0); i < KeyPadSize; i++ {
+				if c.KeyPad[i] {
+					c.regsV[x] = i
+					break outer
+				}
+			}
+
+			if i == KeyPadSize {
+				c.pc -= 2
+				log.Println("waiting to press")
+				return
+			} else {
+				opcodeString = fmt.Sprintf("%X is pressed", i)
+			}
+
+		// FX15
+		// Sets the delay timer to VX
+		case 0x15:
+			c.delayTimer = c.regsV[x]
+
+			opcodeString = fmt.Sprintf("delay timer = V%X", c.regsV[x])
+
+		// FX18
+		// Sets the sound timer to VX
+		case 0x18:
+			c.soundTimer = c.regsV[x]
+
+			opcodeString = fmt.Sprintf("sound timer = V%X", c.regsV[x])
+
+		// FX1E
+		// Adds VX to I. VF is not affected
+		case 0x1e:
+			c.regI += uint16(c.regsV[x])
+
+			opcodeString = fmt.Sprintf("VI += V%X", x)
+
+		// FX29
+		// Sets I to the location of the sprite for the character in VX
+		case 0x29:
+			c.regI = uint16(c.regsV[x]) * 5
+
+			opcodeString = fmt.Sprintf("VI set to %X font sprite", c.regsV[x])
+
+		// FX33
+		// Stores the binary-coded decimal representation of VX,
+		// with the hundreds digit in memory at location in I,
+		// the tens digit at location I+1,
+		// and the ones digit at location I+2
+		case 0x33:
+			c100 := c.regsV[x] / 100
+			c10 := (c.regsV[x] - c100*100) / 10
+			c1 := c.regsV[x] - c100*100 - c10*10
+
+			c.ram[c.regI] = c100
+			c.ram[c.regI+1] = c10
+			c.ram[c.regI+2] = c1
+
+			opcodeString = fmt.Sprintf("BCD(V%X)", x)
+
+		// FX55
+		// Stores from V0 to VX (including VX) in memory, starting at address I.
+		// The offset from I is increased by 1 for each value written,
+		// but I itself is left unmodified
+		case 0x55:
+			for i := uint16(0); i <= uint16(x); i++ {
+				c.ram[c.regI+i] = c.regsV[i]
+			}
+
+			opcodeString = fmt.Sprintf("store from V0 to V%X", x)
+
+		// FX65
+		// Fills from V0 to VX (including VX) with values from memory, starting at address I.
+		// The offset from I is increased by 1 for each value read,
+		// but I itself is left unmodified
+		case 0x65:
+			for i := uint16(0); i <= uint16(x); i++ {
+				c.regsV[i] = c.ram[c.regI+i]
+			}
+
+			opcodeString = fmt.Sprintf("decode from RAM to V0 to V%X", x)
+
+		default:
+			opcodeString = fmt.Sprintf("unknown opcode %04X", opcode)
+		}
+
 	default:
 		opcodeString = fmt.Sprintf("unimplemented opcode: %04x", opcode)
-		log.Println(opcodeString)
 
+	}
+
+	if c.delayTimer > 0 {
+		c.delayTimer--
+	}
+	if c.soundTimer > 0 {
+		if c.soundTimer == 1 {
+			log.Println("PLAY SOUND")
+		}
+		c.soundTimer--
 	}
 
 	fmt.Printf("%04X: %04X %s\n", c.pc, opcode, opcodeString)
-
-	// fmt.Printf("regs:\n")
-	// fmt.Printf("     %X-%02X %X-%02X %X-%02X %X-%02X\n",
-	// 	0, c.regsV[0], 1, c.regsV[1],
-	// 	2, c.regsV[2], 3, c.regsV[3],
-	// )
-	// fmt.Printf("     %X-%02X %X-%02X %X-%02X %X-%02X\n",
-	// 	4, c.regsV[4], 5, c.regsV[5],
-	// 	6, c.regsV[6], 7, c.regsV[7],
-	// )
-	// fmt.Printf("     %X-%02X %X-%02X %X-%02X %X-%02X\n",
-	// 	8, c.regsV[8], 9, c.regsV[9],
-	// 	0xa, c.regsV[0xa], 0xb, c.regsV[0xb],
-	// )
-	// fmt.Printf("     %X-%02X %X-%02X %X-%02X %X-%02X\n",
-	// 	0xc, c.regsV[0xc], 0xd, c.regsV[0xd],
-	// 	0xe, c.regsV[0xe], 0xf, c.regsV[0xf],
-	// )
-	// stackInfo := "stack: [ "
-	// for i := 0; i < int(c.sp); i++ {
-	// 	stackInfo += fmt.Sprintf("%04X ", c.stack[i])
-	// }
-	// stackInfo += "]"
-	// fmt.Println(stackInfo)
-
-	// fmt.Println()
-}
-
-func (c Chip8) LogRam() {
-	for i := 0; i < RamSizeBytes; i += 8 {
-		// prevent BCE
-		_ = c.ram[i+7]
-
-		if c.ram[i]|
-			c.ram[i+1]|
-			c.ram[i+2]|
-			c.ram[i+3]|
-			c.ram[i+4]|
-			c.ram[i+5]|
-			c.ram[i+6]|
-			c.ram[i+7] == 0 {
-			continue
-		}
-		fmt.Printf("%04X: %02x %02x %02x %02x %02x %02x %02x %02x\n",
-			i,
-			c.ram[i],
-			c.ram[i+1],
-			c.ram[i+2],
-			c.ram[i+3],
-			c.ram[i+4],
-			c.ram[i+5],
-			c.ram[i+6],
-			c.ram[i+7],
-		)
-	}
 }
 
 var emptyScreen = make([]bool, ScreenSize)
@@ -494,8 +557,10 @@ func (c *Chip8) clearScreen() {
 	copy(c.Screen[:], emptyScreen)
 }
 
-var emptyKeyPad = make([]bool, KeyPadSize)
-
-func (c *Chip8) clearKeyPad() {
-	copy(c.KeyPad[:], emptyKeyPad)
+func (c *Chip8) SetKey(key uint8, isPressed bool) {
+	if key >= KeyPadSize {
+		log.Println("key is invalid. do nothing")
+		return
+	}
+	c.KeyPad[key] = isPressed
 }

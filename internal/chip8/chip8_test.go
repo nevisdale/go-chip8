@@ -549,7 +549,7 @@ func TestChip8_Emulate(t *testing.T) {
 	t.Run("EX9E", func(t *testing.T) {
 		rom := Rom{
 			Data: []byte{
-				0xe0, 0x93, // if keypad[v[0]] == pressed then skip the next instruction
+				0xe0, 0x9e, // if keypad[v[0]] == pressed then skip the next instruction
 				0x00, 0xe0, // clear screen
 			},
 		}

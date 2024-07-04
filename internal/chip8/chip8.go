@@ -7,6 +7,8 @@ import (
 	v2 "math/rand/v2"
 	"os"
 	"time"
+
+	"github.com/nevisdale/go-chip8/internal/beep"
 )
 
 const (
@@ -108,6 +110,8 @@ type Chip8 struct {
 	tps int
 	// time that takes to make a one command (tick)
 	tickDuration time.Duration
+
+	beepPlayer *beep.Beep
 }
 
 func NewChip8() Chip8 {
@@ -127,10 +131,14 @@ func NewChip8() Chip8 {
 func (c *Chip8) LoadRom(rom Rom) {
 	c.rom = rom
 	copy(c.ram[c.pc:], rom.Data)
-
 }
+
 func (c Chip8) GetRomName() string {
 	return c.rom.Name
+}
+
+func (c *Chip8) SetSoundPlayer(beep *beep.Beep) {
+	c.beepPlayer = beep
 }
 
 func (c *Chip8) SetTPS(tps int) {
@@ -567,6 +575,9 @@ func (c *Chip8) Emulate() {
 	if c.soundTimer > 0 {
 		if c.soundTimer == 1 {
 			log.Println("PLAY SOUND")
+			if c.beepPlayer != nil {
+				c.beepPlayer.Play()
+			}
 		}
 		c.soundTimer--
 	}
@@ -628,4 +639,16 @@ func (c *Chip8) TogglePause() {
 
 func (c Chip8) GetState() State {
 	return c.state
+}
+
+func (c *Chip8) SoundVolumeUp() {
+	if c.beepPlayer != nil {
+		c.beepPlayer.VolumeUp()
+	}
+}
+
+func (c *Chip8) SoundVolumeDown() {
+	if c.beepPlayer != nil {
+		c.beepPlayer.VolumeDown()
+	}
 }

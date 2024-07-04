@@ -1,7 +1,7 @@
 # go-chip8
 CHIP8 Emulator in go
 
-## Build
+## Build:
 ```bash
 make build
 ```
@@ -35,3 +35,5 @@ make build
 ## Special keys:
 - P - pause/play a game
 - K - show/hide a keypad window
+- 0 - sound volume up
+- 9 - sound volume down

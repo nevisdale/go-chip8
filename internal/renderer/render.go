@@ -76,6 +76,13 @@ func (r *Renderer) Update() error {
 		r.keypadMode = !r.keypadMode
 	}
 
+	switch {
+	case inpututil.IsKeyJustPressed(ebiten.Key0):
+		r.chip8.SoundVolumeUp()
+	case inpututil.IsKeyJustPressed(ebiten.Key9):
+		r.chip8.SoundVolumeDown()
+	}
+
 	for chip8Key, ebitenKey := range keyboardMapping {
 		r.chip8.SetKey(chip8Key, ebiten.IsKeyPressed(ebitenKey))
 	}

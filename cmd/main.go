@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/nevisdale/go-chip8/internal/beep"
 	"github.com/nevisdale/go-chip8/internal/chip8"
 	"github.com/nevisdale/go-chip8/internal/renderer"
 )
 
 var (
-	romPath    string
-	fgColorHex string
-	bgColorHex string
-	tps        int
+	soundVolume float64
+	romPath     string
+	fgColorHex  string
+	bgColorHex  string
+	tps         int
 )
 
 func main() {
@@ -21,10 +23,16 @@ func main() {
 	flag.StringVar(&fgColorHex, "fg", "FFFFFFFF", "rgba foreground color in hex. white is default")
 	flag.StringVar(&bgColorHex, "bg", "000000FF", "rgba background color in hex. black is default")
 	flag.IntVar(&tps, "tps", 60, "tps")
+	flag.Float64Var(&soundVolume, "volume", 0.5, "sound volume. must be between 0 and 1")
 	flag.Parse()
 
 	if len(romPath) == 0 {
 		fmt.Fprintf(os.Stderr, "rom file is empty\n")
+		os.Exit(1)
+	}
+
+	if soundVolume < 0 || soundVolume > 1 {
+		fmt.Fprintf(os.Stderr, "sound volume is invalid, must be between 0 and 1")
 		os.Exit(1)
 	}
 
@@ -45,9 +53,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	beepPlayer, err := beep.New()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "beep player: %s\n", err.Error())
+		os.Exit(1)
+	}
+	beepPlayer.SetVolume(soundVolume)
+
 	chip8 := chip8.NewChip8()
 	chip8.LoadRom(rom)
 	chip8.SetTPS(tps)
+	chip8.SetSoundPlayer(beepPlayer)
 
 	renderer := renderer.NewFromConfig(&chip8, renderer.Config{
 		FgColor: fgColor,
